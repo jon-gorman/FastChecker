@@ -39,6 +39,8 @@
 </div>
 <script>
 
+
+
     function voiceActivate() {
         //Activate voice function
         window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -84,18 +86,26 @@
         const searching = document.querySelector('#input')
         const outside = document.querySelector('#listed');
 
+        console.log($("input").val.length);
+
+        // if($("input").focus(function()){
+        //     console.log("HI")
+        //     // searchInput.addEventListener('focus', displayMatches);
+        // };
+
+
+
 
         //finding form values
         document.getElementById('input').addEventListener('input', function () {
             console.log(this.value, typeof (this.value), "value");
             //So if there is a backspace used it wont display the entire json file
-            if (document.getElementById("input").value.length != 0) {
-                searchInput.addEventListener('keyup', displayMatches);
-                searching.addEventListener('focus', displayMatches)
-                console.log(document.getElementById("input").value)
-
+            if (document.getElementById("input").value.length >= 1) {
                 $('#listed').show();
-            } else if (document.getElementById("input").value.length == 0) {
+                searchInput.addEventListener('keyup', displayMatches);
+
+                console.log(document.getElementById("input").value)
+            } else if (document.getElementById("input").value.length < 1) {
                 $('#listed').hide();
                 console.log("empty")
             }
