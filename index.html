@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="styles.css">
+    <title>Title</title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-sm navbar-dark bg-primary mb-3" id="nav">
+        <div class="container">
+        <a class="navbar-brand" href="#">Whole Foods Search</a>
+        </div>
+    </nav>
+    <div class="container">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card card-body">
+                <h3>Search</h3>
+                <form action="#">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="input">
+                        <label for="input">Search by category or exact item</label>
+                    </div>
+<!--                    <button class="btn btn-primary" onclick="search()">Category</button>-->
+<!--                    <button class="btn btn-primary" onclick="specific()">Item</button>-->
+                    <button class="btn btn-warning" onclick="voiceActivate()">Voice</button>
+                </form>
+            </div>
+        </div>
+    </div>
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="words col-md-6 mx-auto" style="width: 100%" id="listed"></div>
+    </div>
+</div>
+</div>
+<script>
+
+    function voiceActivate() {
+        //Activate voice function
+        window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        var recognition = new webkitSpeechRecognition();
+
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = "en-US";
+        recognition.start();
+        recognition.onresult = function (e) {
+            document.getElementById('input').value = e.results[0][0].transcript.toLocaleLowerCase()
+            //Use the focus Event so we have a way to addEventListener
+            document.getElementById('input').focus();
+            recognition.stop();
+            recognition.onerror = function (e) {
+                recognition.stop();
+            }
+        }
+    }
+    //Create itemsArray and push all keys and values to it
+        const itemsArray = []
+        fetch('listdb.json')
+            .then(blob => blob.json())
+            .then(function data(blob) {
+                for (let [keys, value] of Object.entries(blob.items[0])) {
+                    itemsArray.push(`${keys}: ${value}`)
+                }
+                console.log(itemsArray)
+            });
+
+        function displayMatches() {
+            const matchArray = findMatches(this.value, itemsArray);
+            const html = matchArray.map(food => {
+                return `
+            <h3>
+            <span class="food">${food}</span>
+            </h3>`
+            }).join('');
+            outside.innerHTML = html
+        }
+
+        function findMatches(wordToMatch, itemsArray) {
+            return itemsArray.filter(groceries => {
+                const regex = new RegExp(wordToMatch, 'gi');
+                return groceries.match(regex)
+            })
+        }
+
+        const searchInput = document.querySelector('#input');
+        const outside = document.querySelector('#listed');
+        searchInput.addEventListener('focus', displayMatches)
+
+        //finding form values
+        document.getElementById('input').addEventListener('input', function () {
+            console.log(this.value, typeof (this.value), "value");
+            //So if there is a backspace used it wont display the entire json file
+            if (document.getElementById("input").value.length != 0) {
+                searchInput.addEventListener('keyup', displayMatches)
+                $('#listed').show();
+            } else if (document.getElementById("input").value.length == 0) {
+                $('#listed').hide();
+                console.log("empty")
+            }
+        });
+
+
+
+
+
+
+    // function search() {
+    //     let inputVal = document.getElementById('input').value;
+    //     fetch("db.json")
+    //         .then(response => response.json())
+    //         //look at the outermost key and put into array, loop through and if
+    //         // matched from inputVal display that.
+    //         .then(function item(response) {
+    //             let itemKeys = Object.keys(response.items[0])
+    //             console.log(itemKeys)
+    //             let matched = []
+    //             for(let i = 0; i < itemKeys.length; i++){
+    //                 if(inputVal == itemKeys[i]){
+    //                     matched.push(itemKeys[i])
+    //                     // console.log(response.items[0][inputVal])
+    //                     console.log("matched")
+    //                 }else{
+    //                     console.log("no match")
+    //                 }
+    //             }
+    //             console.log(matched)
+    //             //put all found entries into the dom by using entries starting at
+    //             let foundArray = Object.entries(response.items[0][matched][0])
+    //             console.log(foundArray, "foundArray")
+    //             let app = document.querySelector('.words')
+    //             app.innerHTML = '<div>' + foundArray.map(function(wizard){
+    //                 return '<h3 class="itemCodes">' + wizard + '</h3>'
+    //             }).join('') + '</div>';
+    //
+    //             //use regex to make the result look better
+    //             $(document).ready(function(){
+    //                 $(".itemCodes").each(function () {
+    //                     $(this).html($(this).html().replace(/,/g, ' - '))
+    //                 })
+    //             })
+    //         })
+    // }
+    //
+    // function specific() {
+    //     let inputVal = document.getElementById('input').value;
+    //     fetch("listdb.json")
+    //         .then(response => response.json())
+    //         //look at the outermost key and put into array, loop through and if
+    //         // matched from inputVal display that.
+    //         .then(function item(response) {
+    //             let itemKeys = Object.keys(response.items[0])
+    //             console.log(itemKeys, "item keys")
+    //             let matched2 = []
+    //             for([keys, value] of Object.entries(response.items[0])){
+    //                 if(inputVal == keys){
+    //                     let entry = keys.concat("-", value)
+    //                     // matched2.push(keys)
+    //                     matched2.push(entry)
+    //                     console.log(matched2)
+    //                     let app = document.querySelector('.words')
+    //                     app.innerHTML = '<div>' + matched2.map(function(wizard){
+    //                     return '<h3 class="itemCodes">' + wizard + '</h3>'
+    //                     }).join('') + '</div>';
+    //
+    //                 }
+    //             }
+    //         })
+    // }
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+</body>
+</html>
